@@ -3,7 +3,7 @@
 use std::fs;
 use std::collections::HashMap;
 
-fn problem1(data: String){
+fn problem1(data: &String){
     let mut score: i32 = 0;
     let mut choice_vals = HashMap::new();
     choice_vals.insert(String::from("X"), 1);
@@ -31,7 +31,7 @@ fn problem1(data: String){
     println!("Problem 1 Solution: {}", score);
 }
 
-fn problem2(data: String){
+fn problem2(data: &String){
     let mut score: i32 = 0;
     
     // Define modifiers for choice
@@ -83,6 +83,6 @@ fn problem2(data: String){
 fn main(){
     let data = fs::read_to_string("./src/input.txt").expect("Should have been able to read the file");
 
-    problem1(data.clone());
-    problem2(data);
+    problem1(&data);
+    problem2(&data);
 }
