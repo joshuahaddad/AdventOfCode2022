@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use std::fs;
-use std::collections::HashMap;
 use std::collections::HashSet;
 
 fn get_priority(similarity: char) -> i32{
@@ -16,29 +15,22 @@ fn get_priority(similarity: char) -> i32{
     }
 }
 
-fn find_similarity(line: &str) -> char{
-    let mut n_first: HashMap<char, i32> = HashMap::new();
-    let mut n_second: HashMap<char, i32> = HashMap::new();
-    let start_second: usize = line.chars().count()/2 as usize;
-    for i in 0..start_second{
-        n_first.entry(line.to_string().as_bytes()[i] as char).or_insert(0);
-        n_second.entry(line.to_string().as_bytes()[(start_second+i)] as char).or_insert(0);
-
-        if n_first.contains_key(&(line.to_string().as_bytes()[(start_second+i)] as char)){
-            return line.to_string().as_bytes()[(start_second+i)] as char
-        }
-        else if n_second.contains_key(&(line.to_string().as_bytes()[i] as char)){
-            return line.to_string().as_bytes()[i] as char;
-        }
+fn find_similarity(line: &String) -> char{
+    let start: usize = 0;
+    let mid: usize = line.chars().count()/2 as usize;
+    let end: usize = (line.chars().count()) as usize;
+    let set1: HashSet<char> = line[start..mid].chars().collect();
+    let set2: HashSet<char> = line[mid..end].chars().collect();
+    for val in set1.intersection(&set2){
+        return *val;
     }
-
-    return '1';
+    panic!("No intersection found?");
 }
 
 fn problem1(data: &String){
     let mut s: i32 = 0;
     for line in data.lines(){
-        s += get_priority(find_similarity(line));
+        s += get_priority(find_similarity(&line.to_string()));
     }
     println!("{}", s);
 }
@@ -75,6 +67,7 @@ fn problem2(data: &String){
 
 fn main() {
     let data = fs::read_to_string("./src/input.txt").expect("Should have been able to read the file");
+    //let data: String = "vJrwpWtwJgWrhcsFMMfFFhFp\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\nPmmdzqPrVvPwwTWBwg\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\nttgJtRGJQctTZtZT\nCrZsJsPPZsGzwwsLwLmpwMDw".to_string();
     problem1(&data);
     problem2(&data);
 
