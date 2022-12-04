@@ -27,12 +27,13 @@ fn find_similarity(line: &String) -> char{
     panic!("No intersection found?");
 }
 
-fn problem1(data: &String){
+fn problem1(data: &String) -> i32{
     let mut s: i32 = 0;
     for line in data.lines(){
         s += get_priority(find_similarity(&line.to_string()));
     }
     println!("{}", s);
+    return s;
 }
 
 fn get_badge(group: &mut Vec<String>) -> char{
@@ -51,10 +52,11 @@ fn get_badge(group: &mut Vec<String>) -> char{
 
     return intersection.drain().next().unwrap();
 }
-fn problem2(data: &String){
+fn problem2(data: &String) -> i32{
     let mut i: i32 = 0;
     let mut s: i32 = 0;
     let mut group: Vec<String> = vec!["","",""].into_iter().map(|s| s.to_owned()).collect();
+
     for line in data.lines(){
         group[(i%3) as usize] = line.to_string();
         i+=1;
@@ -63,6 +65,7 @@ fn problem2(data: &String){
         }
     }
     println!("{}", s);
+    return s;
 }
 
 fn main() {
@@ -72,3 +75,17 @@ fn main() {
     problem2(&data);
 
 }
+
+
+#[test]
+fn prob1() {
+    let data: String = "vJrwpWtwJgWrhcsFMMfFFhFp\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\nPmmdzqPrVvPwwTWBwg\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\nttgJtRGJQctTZtZT\nCrZsJsPPZsGzwwsLwLmpwMDw".to_string();
+    assert_eq!(problem1(&data), 157);
+}
+
+#[test]
+fn prob2(){
+    let data: String = "vJrwpWtwJgWrhcsFMMfFFhFp\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\nPmmdzqPrVvPwwTWBwg\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\nttgJtRGJQctTZtZT\nCrZsJsPPZsGzwwsLwLmpwMDw".to_string();
+    assert_eq!(problem2(&data), 70);
+}
+
