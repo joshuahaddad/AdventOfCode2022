@@ -2,7 +2,6 @@ use std::fs;
 
 fn init_stacks(stack_init: &String) -> Vec<Vec<char>>{
     let n_stacks: usize = (stack_init.lines().next().unwrap().len()+1)/4;
-    // let stacks: Vec<Vec<char>> = Vec::with_capacity(n_stacks);
     let mut stacks: Vec<Vec<char>> = Vec::with_capacity(n_stacks);
     (0..stacks.capacity()).for_each(|_| stacks.push(Vec::<char>::default()));
 
@@ -11,6 +10,8 @@ fn init_stacks(stack_init: &String) -> Vec<Vec<char>>{
         let line = line.to_string();
         for i in 0..n_stacks{
             let c = line.as_bytes()[(i*4+1) as usize];
+
+            // Ignore whitespaces, [, and ]. Only accept chars A-Z
             if c >= 65 && c <=90 {
                 stacks[i].push(c as char);
             }
@@ -39,14 +40,6 @@ fn parse_instruction(instr: String) -> (i32, usize, usize){
     return (n, (from-1) as usize, (to-1) as usize);
 }
 
-fn get_string_from_stacks(stacks: Vec<Vec<char>>) -> String{
-    let mut top_vals: String = "".to_string();
-    for stack in stacks{
-        top_vals.push(*stack.last().unwrap());
-    }
-
-    return top_vals;
-}
 fn execute_prob1(instrs: &String, mut stacks: Vec<Vec<char>>) -> String{
     for instr in instrs.lines(){
         let (n, from, to) = parse_instruction(instr.to_string());
@@ -56,7 +49,7 @@ fn execute_prob1(instrs: &String, mut stacks: Vec<Vec<char>>) -> String{
         }
     }
     
-    return get_string_from_stacks(stacks);
+    return stacks.into_iter().map(|stack| *stack.last().unwrap()).collect::<String>();
 }
 
 fn execute_prob2(instrs: &String, mut stacks: Vec<Vec<char>>) -> String {
@@ -72,7 +65,7 @@ fn execute_prob2(instrs: &String, mut stacks: Vec<Vec<char>>) -> String {
             stacks[to].push(c);
         }
     }
-    return get_string_from_stacks(stacks);
+    return stacks.into_iter().map(|stack| *stack.last().unwrap()).collect::<String>();
 }
 
 fn main() {
