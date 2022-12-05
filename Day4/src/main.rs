@@ -14,6 +14,14 @@ fn generate_set(range: &String) -> HashSet<i32>{
     return HashSet::from_iter(from..to+1);
 }
 
+fn get_bounds(range: &String) -> (i32, i32){
+    // Extract the numbers from [\d]*-[\d]* IE 88-101 -> 88 and 101 vars
+    let separator: usize = range.chars().position(|c| c == '-').unwrap();
+    let from: i32 = (&range[0..separator]).to_string().parse().unwrap();
+    let to: i32 = (&range[separator+1..range.len() as usize]).to_string().parse().unwrap();
+    return (from, to);
+}
+
 fn solve_problems(data: &String) -> (i32, i32){
 
     // Problem 1 = n_full_overlaps and Problem 2 = n_overlap
@@ -32,7 +40,7 @@ fn solve_problems(data: &String) -> (i32, i32){
         let set1: HashSet<i32> = generate_set(&first_range);
         let set2: HashSet<i32> = generate_set(&second_range);
 
-        // If either set is a full subset of the other it is a complete overlap by problem 1 standard
+        // If either set is a specific subset of the other it is a complete overlap by problem 1 standard
         if set1.is_subset(&set2) || set2.is_subset(&set1){
             n_full_overlaps+=1;
         }
@@ -47,16 +55,52 @@ fn solve_problems(data: &String) -> (i32, i32){
     return (n_full_overlaps, n_overlap);
 }
 
+fn solve_problems_faster(data: &String) -> (i32, i32){
+    // Problem 1 = n_full_overlaps and Problem 2 = n_overlap
+    let mut n_full_overlaps: i32 = 0;
+    let mut n_overlap: i32 = 0;
+
+    for line in data.lines(){
+
+        //String parsing convert ([\d]*-[\d]*,[\d]*-[\d]*) to two variables with form [\d]*-[\d]* IE 1-2,3-4 is converted to 1-2 and 3-4
+        let cast_line = line.to_string();
+        let separator: usize = line.chars().position(|c| c == ',').unwrap();
+        let first_range: String = (&cast_line[0..separator]).to_string();
+        let second_range: String = (&cast_line[separator+1..cast_line.len() as usize]).to_string();
+        
+        // get the ranges
+        let (lb1, ub1) = get_bounds(&first_range);
+        let (lb2, ub2) = get_bounds(&second_range);
+
+        // If either set is a specific subset of the other it is a complete overlap by problem 1 standard
+        if (lb1 <= lb2 && ub1 >= ub2) || (lb2 <= lb1 && ub2 >= ub1){
+            n_full_overlaps+=1;
+        }
+
+        // Check for any overlap. [4, 9] and [5, 10] overlap because lb1 (4) < ub2 (10) and lb1 (4) < lb2 (5)
+        if (lb1 <= ub2 && lb2 <= lb1) || (lb2 <= ub1 && lb1 <= lb2) {
+            n_overlap += 1;
+        }
+    }
+    println!("{}", n_full_overlaps);
+    println!("{}", n_overlap);
+    return (n_full_overlaps, n_overlap);
+}
+
 
 fn main() {
     let data = fs::read_to_string("./src/input.txt").expect("Error while reading file");
     solve_problems(&data);
+    solve_problems_faster(&data);
 }
 
 #[test]
 fn problems() {
     let data: String = "2-4,6-8\n2-3,4-5\n5-7,7-9\n2-8,3-7\n6-6,4-6\n2-6,4-8".to_string();
     let (prob1, prob2) = solve_problems(&data);
+    let (prob1_alt, prob2_alt) = solve_problems_faster(&data);
     assert_eq!(prob1, 2);
     assert_eq!(prob2, 4);
+    assert_eq!(prob1_alt, 2);
+    assert_eq!(prob2_alt, 4);
 }
