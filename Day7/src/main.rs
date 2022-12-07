@@ -1,19 +1,19 @@
+#![allow(non_snake_case)]
 use std::fs;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use regex::Regex;
-
-
 
 fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
 
-    // Represent the directory as a hashmap mapping (directory) -> (parent dir, Vec<(file name, file size)>)
+    // Represent the directory as a hashmap mapping (filepath) -> (parent filepath, Vec<(file name, file size)>)
     let mut dir_tree: HashMap<String, (String, Vec<(String, i32)>)> = HashMap::new();
     let mut reading_dir: bool = false;
     let mut curr_dir: String = "~".to_string();
     let mut parent_dir: String = "".to_string();
-
+    let mut i = 0;
     for line in data.lines(){
+        i += 1;
+        
         if line.starts_with("$ cd"){
             // End ls command
             reading_dir = false;
@@ -23,25 +23,31 @@ fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
 
             // If we are moving up a directory use the hashmap to find the parent dir
             if args == ".."{
-                let dbg = curr_dir.clone();
+                let _dbg = curr_dir.clone();
                 curr_dir = parent_dir.clone();
                 parent_dir = dir_tree.get(&curr_dir).unwrap().0.clone();
                 
-                //println!("Moving From dir {} to dir {} with parent {}", dbg, curr_dir, parent_dir);
+                //println!("Moving Up from dir {} to dir {} with parent {}", _dbg, curr_dir, parent_dir);
             }
 
             // If we are moving into a directory
             else {
                 parent_dir = curr_dir.clone();
-                curr_dir = args.to_string();
+                if args != "/"{
+                    curr_dir.push_str("/");
+                    curr_dir.push_str(args);
+                }
+                
                 //println!("Moving From dir {} to dir {}", parent_dir, curr_dir);
+                
             }
             
             // Initialize the hashmap entry if it doesnt exist
             if !dir_tree.contains_key(&curr_dir){
-                let mut files = Vec::<(String, i32)>::new();
+                let files = Vec::<(String, i32)>::new();
                 dir_tree.insert(curr_dir.clone(), (parent_dir.clone(), files));
             }
+            println!("Reading {} as having parent dir {}", curr_dir, parent_dir);
         }
         else if line.starts_with("$ ls"){
             // Start an ls command
@@ -66,13 +72,11 @@ fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
     return dir_tree;
 }
 
-fn get_size_dirs(dir_tree: HashMap<String, (String, Vec<(String, i32)>)>) {
+fn get_size_dirs(dir_tree: HashMap<String, (String, Vec<(String, i32)>)>) -> HashMap<String, i32>{
 
     let mut dir_sizes: HashMap<String, i32> = HashMap::new();
 
-    // Debugging: Print the directories
     for (dir, value) in &dir_tree {
-        let mut s = 0;
         for tup in &value.1 {
 
             // Add the size to the current inspected dir
@@ -96,13 +100,28 @@ fn get_size_dirs(dir_tree: HashMap<String, (String, Vec<(String, i32)>)>) {
             }
         }   
      }
+    
+    return dir_sizes;
+}
 
-     for (dir, value) in &dir_sizes {
-        println!("Directory: {} Size: {}", dir, value);
-     }
+fn problem1(data: &String) -> i32 {
+    let dir_tree = build_dir(data);
+    let dir_sizes = get_size_dirs(dir_tree);
+    let mut s = 0;
+    for (_dir, value) in &dir_sizes {
+        if *value <= 100000 {
+            s += value;
+        }
+    }
+    return s;
 }
 fn main() {
+    let data = fs::read_to_string("./src/input.txt").expect("Error while reading file");
+    println!("{}", problem1(&data));
+}
+
+#[test]
+fn test_p1 (){
     let data = fs::read_to_string("./src/test.txt").expect("Error while reading file");
-    let dir_tree = build_dir(&data);
-    get_size_dirs(dir_tree);
+    assert_eq!(problem1(&data), 95437)
 }
