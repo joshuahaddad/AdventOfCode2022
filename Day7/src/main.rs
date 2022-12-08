@@ -10,9 +10,7 @@ fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
     let mut reading_dir: bool = false;
     let mut curr_dir: String = "~".to_string();
     let mut parent_dir: String = "".to_string();
-    let mut i = 0;
     for line in data.lines(){
-        i += 1;
         
         if line.starts_with("$ cd"){
             // End ls command
@@ -34,7 +32,9 @@ fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
             else {
                 parent_dir = curr_dir.clone();
                 if args != "/"{
+                    curr_dir.push_str(args);
                     curr_dir.push_str("/");
+                } else {
                     curr_dir.push_str(args);
                 }
                 
@@ -47,7 +47,7 @@ fn build_dir(data: &String) -> HashMap<String, (String, Vec<(String, i32)>)> {
                 let files = Vec::<(String, i32)>::new();
                 dir_tree.insert(curr_dir.clone(), (parent_dir.clone(), files));
             }
-            println!("Reading {} as having parent dir {}", curr_dir, parent_dir);
+            // println!("Reading {} as having parent dir {}", curr_dir, parent_dir);
         }
         else if line.starts_with("$ ls"){
             // Start an ls command
@@ -78,7 +78,6 @@ fn get_size_dirs(dir_tree: HashMap<String, (String, Vec<(String, i32)>)>) -> Has
 
     for (dir, value) in &dir_tree {
         for tup in &value.1 {
-
             // Add the size to the current inspected dir
             match dir_sizes.entry(dir.to_string()){
                 Entry::Vacant(e) => {e.insert(tup.1);},
@@ -115,13 +114,38 @@ fn problem1(data: &String) -> i32 {
     }
     return s;
 }
+
+fn problem2(data: &String) -> i32 {
+    let dir_tree = build_dir(data);
+    let dir_sizes = get_size_dirs(dir_tree);
+
+    let DL_SIZE = 30000000;
+    let CAPACITY = 70000000;
+    let REQ_FREE = DL_SIZE - (CAPACITY - dir_sizes.get("~/").unwrap());
+    let mut min_s = DL_SIZE;
+    
+    for (_dir, value) in &dir_sizes {
+        if *value <= min_s &&  *value >= REQ_FREE{
+            
+            min_s = *value;
+        }
+    }
+    return min_s;
+}
 fn main() {
     let data = fs::read_to_string("./src/input.txt").expect("Error while reading file");
     println!("{}", problem1(&data));
+    println!("{}", problem2(&data));
 }
 
 #[test]
 fn test_p1 (){
     let data = fs::read_to_string("./src/test.txt").expect("Error while reading file");
     assert_eq!(problem1(&data), 95437)
+}
+
+#[test]
+fn test_p2 (){
+    let data = fs::read_to_string("./src/test.txt").expect("Error while reading file");
+    assert_eq!(problem2(&data), 24933642)
 }
