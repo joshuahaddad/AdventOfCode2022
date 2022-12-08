@@ -43,6 +43,48 @@ where
         .collect()
 }
 
+fn get_n_trees(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, pos: (usize, usize)) -> i32{
+    let (row, col) = pos;
+    let mut n_trees = 0;
+    let height = forest[row][col];
+    //println!("Starting at Tree : {} Row: {} Col: {}", forest[row][col], row+1, col+1);
+    // If axis = 0 then row is constant
+    if axis == 0 {
+        // If rev = true we are looking right to left and end at 0, else we end at the end of the vec
+        let col_range = if rev {create_range(rev, 0, col)} else {create_range(rev, col+1, forest[0].len())};
+        
+        for col_idx in col_range {
+            //println!("{} at Row: {} Col {}", forest[row][col_idx], row+1, col_idx+1);
+            let curr_tree = forest[row][col_idx];
+            if curr_tree < height {
+                n_trees += 1;
+            }
+            else {
+                n_trees += 1;
+                break;
+            }
+        }
+    } 
+    // If axis = 1 then col is constant
+    else {
+        // If rev = true we are looking bottom to top and end at 0, else we end at the end of the vec
+        let row_range = if rev {create_range(rev, 0, row)} else {create_range(rev, row+1, forest.len())};
+        
+        for row_idx in row_range {
+            //println!("{} at Row: {} Col {}", forest[row_idx][col], row_idx+1, col+1);
+            let curr_tree = forest[row_idx][col];
+            if curr_tree < height {
+                n_trees += 1;
+            }
+            else {
+                n_trees += 1;
+                break;
+            }
+        }
+    }
+    //println!("{}", n_trees);
+    return n_trees;
+}
 fn update_axis(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, viz: &mut HashSet<(i32, i32)>){
     /*  axis = 0 check rows axis = 1 check columns
         rev = false check normally, rev = true check backwards (ie for horizontal read right to left)
@@ -95,10 +137,39 @@ fn get_visibility(forest: Vec<Vec<i32>>) -> i32{
     return visible_trees.len() as i32;
 }
 
+fn get_scenic_score(forest: &Vec<Vec<i32>>, pos: (usize, usize)) -> i32{
+    let mut prod = 1;
+    for axis in 0..2{
+        let forward = get_n_trees(&forest, axis, false, pos);
+        let rev = get_n_trees(&forest, axis, true, pos);
+        //println!("Found Forward {} Rev {} for Axis {}", forward, rev, axis);
+        prod *= forward*rev;
+    }
+    
+    //println!("Scenic Score: {}", prod);
+    return prod;
+}
+
+fn find_highest_score(forest: &Vec<Vec<i32>>) -> i32 {
+    let mut max_score = 0;
+    for (col, rows) in forest.iter().enumerate(){
+        for (row, _) in rows.iter().enumerate() {
+            let score = get_scenic_score(&forest, (row, col));
+            if score > max_score {
+                max_score = score;
+            }
+        }
+    }
+    println!("{}", max_score);
+    return max_score;
+}
 fn main() {
     let forest_data = fs::read_to_string("./src/input.txt").expect("Error while reading file");
     let forest = generate_forest(forest_data);
-    get_visibility(forest);
+    find_highest_score(&forest);
+    //get_n_trees(&forest, 0, true, (3 as usize, 2 as usize));
+    // get_scenic_score(&forest, (3 as usize, 2 as usize));
+    //get_visibility(forest);
 }
 
 #[test]
@@ -106,4 +177,27 @@ fn prob1(){
     let forest_data = fs::read_to_string("./src/test.txt").expect("Error while reading file");
     let forest = generate_forest(forest_data);
     assert_eq!(get_visibility(forest), 21)
+}
+
+#[test]
+fn prob2(){
+    let forest_data = fs::read_to_string("./src/test.txt").expect("Error while reading file");
+    let forest = generate_forest(forest_data);
+
+    let first_tree = (1 as usize, 2 as usize);
+
+    assert_eq!(get_n_trees(&forest, 0, false, first_tree), 2);
+    assert_eq!(get_n_trees(&forest, 0, true, first_tree), 1);
+    assert_eq!(get_n_trees(&forest, 1, false, first_tree), 2);
+    assert_eq!(get_n_trees(&forest, 0, true, first_tree), 1);
+    assert_eq!(get_scenic_score(&forest, first_tree), 4);
+
+    let second_tree = (3 as usize, 2 as usize);
+    assert_eq!(get_n_trees(&forest, 0, false, second_tree), 2);
+    assert_eq!(get_n_trees(&forest, 0, true, second_tree), 2);
+    assert_eq!(get_n_trees(&forest, 1, false, second_tree), 1);
+    assert_eq!(get_n_trees(&forest, 0, true, second_tree), 2);
+    assert_eq!(get_scenic_score(&forest, second_tree), 8);
+
+    assert_eq!(find_highest_score(&forest), 8);
 }
