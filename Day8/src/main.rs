@@ -15,14 +15,6 @@ fn generate_forest(data: String) -> Vec<Vec<i32>>{
         }
     }
 
-    // for row in &forest {
-    //     let mut s: String = "".to_string();
-    //     for val in row {
-    //         s = format!("{}{}",s,val);
-    //     }ie
-    //     println!("{}", s);
-    // }
-
     return forest;
 }
 fn create_range(rev: bool, low: usize, high: usize) -> Either<impl Iterator<Item = usize>, impl Iterator<Item = usize>> {
@@ -47,14 +39,13 @@ fn get_n_trees(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, pos: (usize, usize)
     let (row, col) = pos;
     let mut n_trees = 0;
     let height = forest[row][col];
-    //println!("Starting at Tree : {} Row: {} Col: {}", forest[row][col], row+1, col+1);
+
     // If axis = 0 then row is constant
     if axis == 0 {
         // If rev = true we are looking right to left and end at 0, else we end at the end of the vec
         let col_range = if rev {create_range(rev, 0, col)} else {create_range(rev, col+1, forest[0].len())};
         
         for col_idx in col_range {
-            //println!("{} at Row: {} Col {}", forest[row][col_idx], row+1, col_idx+1);
             let curr_tree = forest[row][col_idx];
             if curr_tree < height {
                 n_trees += 1;
@@ -71,7 +62,6 @@ fn get_n_trees(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, pos: (usize, usize)
         let row_range = if rev {create_range(rev, 0, row)} else {create_range(rev, row+1, forest.len())};
         
         for row_idx in row_range {
-            //println!("{} at Row: {} Col {}", forest[row_idx][col], row_idx+1, col+1);
             let curr_tree = forest[row_idx][col];
             if curr_tree < height {
                 n_trees += 1;
@@ -82,7 +72,6 @@ fn get_n_trees(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, pos: (usize, usize)
             }
         }
     }
-    //println!("{}", n_trees);
     return n_trees;
 }
 fn update_axis(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, viz: &mut HashSet<(i32, i32)>){
@@ -103,7 +92,7 @@ fn update_axis(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, viz: &mut HashSet<(
             let tup = if axis == 0 {(i,0)} else {(0, i)};
             viz.insert(tup);
         } else {
-            // Transpose if we are looking at cols
+            // Transpose (i,j) if we are looking at cols
             let tup = if axis == 0 {(i, (n-1) as i32)} else {((n-1) as i32, i)};
             
             viz.insert(tup);
@@ -112,8 +101,7 @@ fn update_axis(forest: &Vec<Vec<i32>>, axis: i32, rev: bool, viz: &mut HashSet<(
         for j in iter_range{       
             if dir[j] > tallest {
 
-                // Transpose if we are looking at cols
-                
+                // Transpose (i, j) if we are looking at cols
                 let tup = if axis == 0 {(i,j as i32)} else {(j as i32, i)};
 
                 // Insert coordinate of tree
@@ -133,7 +121,7 @@ fn get_visibility(forest: Vec<Vec<i32>>) -> i32{
     update_axis(&forest, 0, false, &mut visible_trees);
     update_axis(&forest, 0, true, &mut visible_trees);
 
-    println!("Size of visible_trees {}", visible_trees.len());
+    println!("Problem 1 {}", visible_trees.len());
     return visible_trees.len() as i32;
 }
 
@@ -160,16 +148,14 @@ fn find_highest_score(forest: &Vec<Vec<i32>>) -> i32 {
             }
         }
     }
-    println!("{}", max_score);
+    println!("Problem 2 {}", max_score);
     return max_score;
 }
 fn main() {
     let forest_data = fs::read_to_string("./src/input.txt").expect("Error while reading file");
     let forest = generate_forest(forest_data);
     find_highest_score(&forest);
-    //get_n_trees(&forest, 0, true, (3 as usize, 2 as usize));
-    // get_scenic_score(&forest, (3 as usize, 2 as usize));
-    //get_visibility(forest);
+    get_visibility(forest);
 }
 
 #[test]
