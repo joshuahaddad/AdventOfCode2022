@@ -16,80 +16,43 @@ fn dir_to_coord(instr: &str) -> [i32; 3] {
     }
 }
 
-fn l2_norm(head: [i32; 2], tail: [i32; 2]) -> i32 {
-    (head.iter()
-        .zip(tail.iter())
-        .map(|(h, t)| (h - t).pow(2))
-        .sum::<i32>() as f32).sqrt() as i32
-    
+fn dbg_print(width: usize, height: usize, positions: Vec<[i32;2]>) {
+
+    let mut lines = vec![vec!['.';width];height];
+    for (i, pos) in positions.iter().enumerate() {
+        let x = pos[0] as usize;
+        let y = pos[1] as usize;
+        lines[y][x] = char::from_digit(i as u32, 10).unwrap()
+    }
+    for line in lines.iter().rev() {
+        let l: String = line.into_iter().collect();
+        println!("{}", l);
+    }
 }
+fn general_sol(instructions: &String, n_knots: usize, pos_start: [i32;2]) -> i32{
 
-/* Checks if the tail is disjoint from the head by calculating the x,y distances:
-    ..H
-    .T. => true
-
-    ..H
-    ..T => false
-*/
-fn tail_disjoint(head: [i32; 2], tail: [i32; 2]) -> bool {
-    head.iter()
-        .zip(tail.iter())
-        .map(|(h, t)| (h - t).abs())
-        .sum::<i32>() > 1
-}
-
-/*
-    Normal movement occurs when l2 norm is > 1
-    Disjoint movement occurs when l1 norm is > 1
-*/
-fn problem1(instructions: &String) -> i32{
-    let s = [0, 0];
-    let mut head_pos = s;
-    let mut tail_pos = s;
+    // Initialize the head + knots
+    let mut knot_pos = vec![pos_start;n_knots+1];
     let mut visited = HashSet::<(i32, i32)>::new();
 
     for instr in instructions.lines() {
         let dir = dir_to_coord(instr);
-
-        for _ in 0..dir[2] {
-            // println!("Current head: {:?} Current Tail: {:?}", head_pos, tail_pos);
-            let disjoint = tail_disjoint(head_pos, tail_pos);
-            head_pos[0] += dir[0];
-            head_pos[1] += dir[1];
-
-            let dist = l2_norm(head_pos, tail_pos);
-
-            visited.insert((tail_pos[0], tail_pos[1]));
-
-            // Head and tail were connected horizontally
-            if !disjoint && dist > 1 {
-                tail_pos[0] += dir[0];
-                tail_pos[1] += dir[1];
-            } 
-            
-            // Head and tail were connected diagonally
-            else if disjoint && dist > 1 {
-
-                match dir[0]{
-                    1 => {tail_pos = [head_pos[0]-1, head_pos[1]];},
-                    -1 => {tail_pos = [head_pos[0]+1, head_pos[1]];},
-                    _ => ()
-                }
-
-                // If the head moved horizontally the tail is either left one or right one
-                match dir[1]{
-                    1 => {tail_pos = [head_pos[0], head_pos[1]-1];},
-                    -1 => {tail_pos = [head_pos[0], head_pos[1]+1];},
-                    _ => ()
-                }
-            }
-            // println!("Final head: {:?} Final Tail: {:?}", head_pos, tail_pos);
-            // If the tail has not visited the location insert into the set
-            
-        }
-
-        visited.insert((tail_pos[0], tail_pos[1]));
         
+        for _ in 0..dir[2] {
+            let mut new_positions = knot_pos.clone();
+            new_positions[0] = [knot_pos[0][0] + dir[0], knot_pos[0][1] + dir[1]];
+
+            for i in 1..n_knots+1{
+                let diff = [new_positions[i-1][0] - new_positions[i][0], new_positions[i-1][1] - new_positions[i][1]];
+                if diff[0].pow(2)+diff[1].pow(2) >= 4  {
+                    let dx = if diff[0] != 0 {diff[0]/diff[0].abs()} else {0};
+                    let dy = if diff[1] != 0 {diff[1]/diff[1].abs()} else {0};
+                    new_positions[i] = [new_positions[i][0]+dx, new_positions[i][1]+dy]
+                }
+            }      
+            knot_pos = new_positions;
+            visited.insert((knot_pos[n_knots][0], knot_pos[n_knots][1]));         
+        }
         
     }
     println!("{}", visited.len());
@@ -98,11 +61,22 @@ fn problem1(instructions: &String) -> i32{
 
 fn main() {
     let instructions = fs::read_to_string("./src/input.txt").expect("Error reading file");
-    problem1(&instructions);
+    general_sol(&instructions, 1, [0,0]);
+
+    let instr = fs::read_to_string("./src/input.txt").expect("Error reading file");
+    general_sol(&instr, 9, [0,0]);
 }
 
 #[test]
 fn p1() {
     let instructions = fs::read_to_string("./src/test.txt").expect("Error reading file");
-    assert_eq!(problem1(&instructions), 13);
+    assert_eq!(general_sol(&instructions, 1, [0,0]), 13);
+}
+
+#[test]
+fn p2() {
+    let inst1 = fs::read_to_string("./src/test.txt").expect("Error reading file");
+    let inst2 = fs::read_to_string("./src/test2.txt").expect("Error reading file");
+    assert_eq!(general_sol(&inst1, 7, [0,0]), 1);
+    assert_eq!(general_sol(&inst2, 9, [11,5]), 36);
 }
