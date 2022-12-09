@@ -66,9 +66,7 @@ fn general_sol(instructions: &String, n_knots: usize, pos_start: [i32;2]) -> i32
 fn main() {
     let instructions = fs::read_to_string("./src/input.txt").expect("Error reading file");
     general_sol(&instructions, 1, [0,0]);
-
-    let instr = fs::read_to_string("./src/input.txt").expect("Error reading file");
-    general_sol(&instr, 9, [0,0]);
+    general_sol(&instructions, 9, [0,0]);
 }
 
 #[test]
