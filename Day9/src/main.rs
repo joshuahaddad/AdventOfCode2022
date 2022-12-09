@@ -15,6 +15,13 @@ fn dir_to_coord(instr: &str) -> [i32; 3] {
         _ => panic!(),
     }
 }
+fn sign(x: i32) -> i32{
+    match x {
+        x if x < 0 => -1,
+        x if x > 0 => 1,
+        _ => 0
+    }
+}
 
 fn dbg_print(width: usize, height: usize, positions: Vec<[i32;2]>) {
 
@@ -42,11 +49,10 @@ fn general_sol(instructions: &String, n_knots: usize, pos_start: [i32;2]) -> i32
             knot_pos[0] = [knot_pos[0][0] + dir[0], knot_pos[0][1] + dir[1]];
 
             for i in 1..n_knots+1{
-                let diff = [knot_pos[i-1][0] - knot_pos[i][0], knot_pos[i-1][1] - knot_pos[i][1]];
-                if diff[0].pow(2)+diff[1].pow(2) >= 4  {
-                    let dx = if diff[0] != 0 {diff[0]/diff[0].abs()} else {0};
-                    let dy = if diff[1] != 0 {diff[1]/diff[1].abs()} else {0};
-                    knot_pos[i] = [knot_pos[i][0]+dx, knot_pos[i][1]+dy]
+                let dx = knot_pos[i-1][0] - knot_pos[i][0];
+                let dy = knot_pos[i-1][1] - knot_pos[i][1];
+                if dx.pow(2)+dy.pow(2) >= 4  {
+                    knot_pos[i] = [knot_pos[i][0]+sign(dx), knot_pos[i][1]+sign(dy)];
                 }
             }      
             visited.insert((knot_pos[n_knots][0], knot_pos[n_knots][1]));         
