@@ -39,18 +39,16 @@ fn general_sol(instructions: &String, n_knots: usize, pos_start: [i32;2]) -> i32
         let dir = dir_to_coord(instr);
         
         for _ in 0..dir[2] {
-            let mut new_positions = knot_pos.clone();
-            new_positions[0] = [knot_pos[0][0] + dir[0], knot_pos[0][1] + dir[1]];
+            knot_pos[0] = [knot_pos[0][0] + dir[0], knot_pos[0][1] + dir[1]];
 
             for i in 1..n_knots+1{
-                let diff = [new_positions[i-1][0] - new_positions[i][0], new_positions[i-1][1] - new_positions[i][1]];
+                let diff = [knot_pos[i-1][0] - knot_pos[i][0], knot_pos[i-1][1] - knot_pos[i][1]];
                 if diff[0].pow(2)+diff[1].pow(2) >= 4  {
                     let dx = if diff[0] != 0 {diff[0]/diff[0].abs()} else {0};
                     let dy = if diff[1] != 0 {diff[1]/diff[1].abs()} else {0};
-                    new_positions[i] = [new_positions[i][0]+dx, new_positions[i][1]+dy]
+                    knot_pos[i] = [knot_pos[i][0]+dx, knot_pos[i][1]+dy]
                 }
             }      
-            knot_pos = new_positions;
             visited.insert((knot_pos[n_knots][0], knot_pos[n_knots][1]));         
         }
         
