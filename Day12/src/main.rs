@@ -59,7 +59,10 @@ fn get_graph(topology: HashMap<(i32, i32), char>, x: usize) -> Graph::<i32, i32>
             if topology.contains_key(&key)  {
                 let neighbor: char = *topology.get(&key).unwrap();
                 if neighbor <= curr_char || neighbor as u32 == curr_char as u32 + 1 {
-                    g.add_edge(vertices[curr_node as usize], vertices[key_node as usize], 0);
+
+                    // Redirect the graph so that key_node -> curr_node means that curr_node could move to the inspected node
+                    // This allows one plm to be built later that shows all distances from the endpoint to 
+                    g.add_edge(vertices[key_node as usize], vertices[curr_node as usize], 0);
                 }
             }
         }
@@ -72,36 +75,23 @@ fn main() {
     let (topology, x, s, e, all_a) = get_topology(&data);
     let g = get_graph(topology, x);
     
-    let plm = dijkstra(&g,s,Some(e), |_| 1);
-    println!("Prob 1: {}", plm[&e]);
+    // Generate all valid paths to the endpoint by running dijkstra from enpoint -> all other nodes
+    let plm = dijkstra(&g,e,None, |_| 1);
 
-    // Loop over each starting point
-    let mut prob2 = plm[&e];
+    // Path from start -> end is at plm[s]
+    println!("Prob 1: {}", plm[&s]);
+
+    // Set min path to answer from p1
+    let mut prob2 = plm[&s];
+
+    // Loop over all starting points, find their pre-computed path lengths from p1, and update min if necesarry
     for start in all_a {
-        let path_mat = dijkstra(&g,start,Some(e), |_| 1);
-        if path_mat.contains_key(&e){
-            let pl = path_mat[&e];
+        if plm.contains_key(&start){
+            let pl = plm[&start];
             if pl < prob2 {
                 prob2 = pl;
             }
         }
     }
     println!("Prob 2: {}", prob2);
-    // astar(
-    //     &g,
-    //     s,               // start
-    //     |n| n == e,      // is_goal
-    //     |e| 1, // edge_cost
-    //     |_| 0,           // estimate_cost
-    // );
-
-    // match path {
-    //     Some((cost, path)) => {
-    //         println!("Path Length Prob 1 {}", cost);
-    //     }
-    //     None => println!("There was no path"),
-    // }
-    
-    
-    //println!("{:?}", topology)
 }
