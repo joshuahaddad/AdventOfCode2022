@@ -41,25 +41,37 @@ fn compare(l: &JsonValue, r: &JsonValue) -> Ordering {
 fn main() {
     let data = fs::read_to_string("./src/input.txt").expect("Failed to load");
     let mut pairs = vec![JsonValue::Null;2];
+    let num_pairs: usize = (data.lines().count()+1)/3;
+
+    let mut packets = Vec::new();
+
     let mut s = 0;
-    let mut pair = 0;
     for (i, line) in data.lines().enumerate(){    
         if line == ""  {
-            pair += 1;
             if compare(&pairs[0], &pairs[1]) != Ordering::Greater {
-                s += pair;
+                s += (i/3) as i32 + 1;
             } 
         }
         else {
-            println!("{:?}", line);
             pairs[i%3] = json::parse(&line).unwrap();
+            packets.push(json::parse(&line).unwrap());
+            
         }
     }
 
     if compare(&pairs[0], &pairs[1]) != Ordering::Greater {
-        s += pair;
+        s += num_pairs as i32;
 
     }
-    println!("{}", s);
+    println!("Problem 1 {}", s);
+
+    // Insert spacer packets and sort
+    packets.push(array![2]);
+    packets.push(array![6]);
+    packets.sort_by(|l,r| compare(l,r));
+    let i1 = packets.iter().position(|r| r == &array![2]).unwrap()+1;
+    let i2 = packets.iter().position(|r| r == &array![6]).unwrap()+1;
+    println!("Problem 1 {}", i1*i2);
+
 
 }
