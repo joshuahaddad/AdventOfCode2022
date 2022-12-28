@@ -101,7 +101,7 @@ fn p2(signals: &String, y: i32){
 
 fn main() {
     let signals = fs::read_to_string("./src/input.txt").expect("Error reading file");
-
+    p1(&signals, 2000000);
     for y in (0..4000000).rev(){
         if y % 10000 == 0 {
             println!("{}", y);

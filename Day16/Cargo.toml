@@ -1,9 +1,11 @@
 [package]
-name = "Day10"
+name = "Day16"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+petgraph = "0.4"
+regex = "1"
 itertools = "0.10.5"

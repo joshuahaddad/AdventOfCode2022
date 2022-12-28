@@ -4,6 +4,7 @@ use std::collections::{HashSet, HashMap};
 const NUM_PIECES: i32 = 5;
 const X_OFF: i32 = 2;
 const Y_OFF: i32 = 4;
+const P2_ITER: i64 = 1000000000000;
 
 struct Tetris{
     board: HashSet<(i32, i32)>,
@@ -159,7 +160,6 @@ impl Tetris {
 fn main() {
     let jet = fs::read_to_string("./src/input.txt").expect("Error reading file");
     let mut game = Tetris::new(7, jet);
-    const P2_ITER: i64 =  1000000000000;
 
     // Loop needs to be large enough to detect a cycle
     while(game.piece_iter < 100000){
