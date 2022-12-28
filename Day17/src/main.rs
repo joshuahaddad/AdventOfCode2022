@@ -1,5 +1,5 @@
 use std::fs;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 const NUM_PIECES: i32 = 5;
 const X_OFF: i32 = 2;
@@ -10,6 +10,7 @@ struct Piece{
 }
 struct Tetris{
     board: HashSet<(i32, i32)>,
+    past_states: HashMap<(Vec<(i32, i32)>, i32, i32), (i32, i32)>,
     jets: Vec<i32>,
     jet_iter: i32,
     piece_iter: i32,
@@ -24,6 +25,7 @@ impl Tetris {
         let mut _board = (0..width).map(|x| (x,0_i32)).collect::<HashSet<(_, _)>>();
         Tetris{
             board: _board,
+            past_states: HashMap::new(),
             jets: _jet.chars().map(|x| if x == '>' {1} else {-1}).collect(),
             jet_iter: 0,
             piece_iter: 0,
@@ -83,8 +85,19 @@ impl Tetris {
             _ => {return self.get_square();},
         }
     }
-    
-    fn spawn_piece(&mut self){
+    fn get_top(&mut self) -> (Vec<(i32,i32)>, i32, i32){
+        const STACK: i32 = 8;
+        let mut state: Vec<(i32,i32)> = vec![];
+        for x in 0..self.r{
+            for y in self.height-STACK..self.height+1{
+                if self.board.contains(&(x, y)){
+                    state.push((x,y-self.height));
+                }
+            }
+        }
+        return (state, self.jet_iter%self.n, self.piece_iter%NUM_PIECES);
+    }
+    fn spawn_piece(&mut self, i: i32) -> (bool, (i32, i32)){
         let mut piece = self.get_piece();
         let mut finished =  false;
 
@@ -101,6 +114,13 @@ impl Tetris {
             self.board.insert(coord);
             if coord.1 > self.height {self.height = coord.1;}
         }
+        let state = self.get_top();
+        if self.past_states.contains_key(&state){
+            
+            return (true, *self.past_states.get(&state).unwrap());
+        }
+        self.past_states.insert(state, (self.height, i));
+        return (false, (self.height, i))
         
     }
 
@@ -123,11 +143,24 @@ impl Tetris {
 fn main() {
     let jet = fs::read_to_string("./src/input.txt").expect("Error reading file");
     let mut game = Tetris::new(7, jet);
-    for _ in 0..2022{
-        game.spawn_piece();
-        
+    const P2_ITER: i64 =  1000000000000;
+
+    for i in 0..3534{
+        let (cycle, cycle_info) = game.spawn_piece(i);
+        if cycle {
+            let cycle_height = (game.height - cycle_info.0) as i64;
+            let cycle_length = (i - cycle_info.1) as i64;
+            let n_left = P2_ITER - (i+1) as i64;
+            let remaining_iter = (n_left) % cycle_length as i64;
+            let n_cycles = (n_left)/cycle_length as i64;
+
+            let cycle_added_height = n_cycles*cycle_height;
+            for j in 0..remaining_iter{
+                game.spawn_piece(j as i32);
+            }
+            println!("Height: {}", game.height as i64+cycle_added_height);
+            break;
+        }    
     }
-    //game.print_board();
-    println!("{}", game.height);
 
 }
