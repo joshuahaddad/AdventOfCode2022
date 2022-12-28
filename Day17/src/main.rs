@@ -145,7 +145,8 @@ fn main() {
     let mut game = Tetris::new(7, jet);
     const P2_ITER: i64 =  1000000000000;
 
-    for i in 0..3534{
+    while(game.piece_iter < 2022){
+        let i = game.piece_iter;
         let (cycle, cycle_info) = game.spawn_piece(i);
         if cycle {
             let cycle_height = (game.height - cycle_info.0) as i64;
@@ -156,9 +157,12 @@ fn main() {
 
             let cycle_added_height = n_cycles*cycle_height;
             for j in 0..remaining_iter{
-                game.spawn_piece(j as i32);
+                game.spawn_piece(i+j as i32);
+                if i as i64+j == 2021{
+                    println!("P1 Height: {}", game.height);
+                }
             }
-            println!("Height: {}", game.height as i64+cycle_added_height);
+            println!("P2 Height: {}", game.height as i64+cycle_added_height);
             break;
         }    
     }
