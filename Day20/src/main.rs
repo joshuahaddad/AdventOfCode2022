@@ -1,6 +1,4 @@
 use std::fs;
-use std::collections::HashMap;
-use std::cmp::{min, max};
 
 fn main() {
     let mut vals: Vec<i64> = fs::read_to_string("./src/input.txt")
@@ -20,12 +18,11 @@ fn mix(vals: &Vec<i64>, n_steps: i64){
     for _ in 0..n_steps
     {
         for (idx, &num) in vals.iter().enumerate() {
-            // find mixed that corresponds to the number in nums
-            let mixed_idx = new_idxs.iter().position(|&v| v == idx).unwrap() as i64;
+            let old_idx = new_idxs.iter().position(|&v| v == idx).unwrap() as i64;
             
-            new_idxs.remove(mixed_idx as usize);
-            let new_mixed_idx = (mixed_idx + num).rem_euclid(n-1) as usize;
-            new_idxs.insert(new_mixed_idx, idx);
+            new_idxs.remove(old_idx as usize);
+            let new_idx = (old_idx + num).rem_euclid(n-1) as usize;
+            new_idxs.insert(new_idx, idx);
         }
     }
 
