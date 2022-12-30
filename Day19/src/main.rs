@@ -218,6 +218,6 @@ fn main() {
             break;
         }
     }
-    println!("Part 2 {} Solved in {:?}", p2_timer.elapsed());
+    println!("Part 2 {} Solved in {:?}", p2, p2_timer.elapsed());
     
 }
