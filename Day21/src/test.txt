@@ -3,9 +3,11 @@ dbpl: 5
 cczh: sllz + lgvd
 zczc: 2
 ptdq: humn - dvpt
-dvpt: 3
+dvpt: aaaa - bbbb
+aaaa: 3
+bbbb: 0
 lfqf: 4
-humn: 5
+humn: 301
 ljgn: 2
 sjmn: drzm * dbpl
 sllz: 4
