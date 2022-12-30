@@ -1,9 +1,9 @@
 use regex::Regex;
-use std::collections::{HashMap,VecDeque, HashSet};
+use std::collections::{HashMap,VecDeque};
 use std::fs;
 use trees::{Tree, Node};
 
-fn p1() -> (String, i64){
+fn p1(){
     let mut set_monkeys: HashMap<String, i64> = HashMap::new();
 
     // Unset Queue
@@ -22,28 +22,12 @@ fn p1() -> (String, i64){
             }
         }
         else {
-            let mut monkey = &line[0..4].to_string();
+            let monkey = &line[0..4].to_string();
             let val: i64 = line[6..line.len()].parse().unwrap();
-            set_monkeys.insert(monkey.clone(), val);
+            set_monkeys.insert(monkey.to_string(), val);
             
         }
     }
-    let mut humn_branch = "".to_string();
-    for (mut parent, child) in children.clone(){
-        if child[0].as_str() == "humn" || child[0].as_str() == "humn"{
-            while(parent.as_str() != "root"){
-                humn_branch = parent.clone();
-                parent = parents.get(&parent).unwrap().clone();
-            }
-        }
-    }
-
-    let non_humn_branch: String = children.get(&"root".to_string())
-                                    .unwrap()
-                                    .iter()
-                                    .cloned()
-                                    .filter(|x| x.to_string() != humn_branch)
-                                    .collect();
 
     while let Some(monkey) = unset.pop_front(){
         if set_monkeys.contains_key(&monkey[1]) && set_monkeys.contains_key(&monkey[2]){
@@ -65,7 +49,6 @@ fn p1() -> (String, i64){
         }
     }
     println!("Problem 1 {}", set_monkeys.get(&"root".to_string()).unwrap());
-    return (humn_branch, *set_monkeys.get(&non_humn_branch).unwrap());
 }
 
 fn gen_tree(tree: &mut Tree<String>, node_str: &String, children: HashMap<String, [String;2]>){
@@ -74,24 +57,10 @@ fn gen_tree(tree: &mut Tree<String>, node_str: &String, children: HashMap<String
         return;
     }
     let node_children = children.get(node_str).unwrap().clone();
-    for (i, child) in node_children.into_iter().enumerate(){
+    for child in node_children.into_iter(){
         let mut child_tree = Tree::new(child.clone());
         gen_tree(&mut child_tree, &child, children.clone());
         tree.push_back(child_tree);
-    }
-}
-
-fn contains_humn(node: &Node<String>) -> bool{
-    if node.data().clone() == "humn".to_string(){
-        return true;
-    }
-
-    else {
-        let mut res = false;
-        for child in node.iter(){
-            res = res || contains_humn(child);
-        }
-        return res;
     }
 }
 
@@ -166,7 +135,7 @@ fn get_hmn_val(node: &Node<String>, unset: &mut Vec<[String; 4]>, set: &mut Hash
 
 }
 
-fn p2(target: i64){
+fn p2(){
 
     let mut set_monkeys: HashMap<String, i64> = HashMap::new();
     let mut unset: VecDeque<[String;4]> = VecDeque::new();
@@ -193,43 +162,31 @@ fn p2(target: i64){
         }
     }
 
-    let mut node_strs = children.get(&"root".to_string()).unwrap();
-    let mut humn_tree = Tree::new(node_strs[0].clone());
-    gen_tree(&mut humn_tree, &node_strs[0], children.clone());
-    if !contains_humn(humn_tree.root()){
-        humn_tree = Tree::new(node_strs[1].clone());
-        gen_tree(&mut humn_tree, &node_strs[1], children.clone());
-    }
-    
     // Set all possible nodes
     set_unset_nodes(&mut unset, &mut set_monkeys);
+
+    // Get [non human path root, human path root]
+    let roots = children.get(&"root".to_string())
+                                                .map(|v| 
+                                                    if set_monkeys.contains_key(&v[0]) {[v[0].clone(), v[1].clone()]} else {[v[1].clone(), v[0].clone()]}
+                                                ).unwrap();
+
+    //Generate the tree
+    let mut humn_tree = Tree::new(roots[1].clone());                               
+    gen_tree(&mut humn_tree, &roots[1], children.clone());
+
+    // Get the target which is the non human path resultant
+    let target = *set_monkeys.get(&roots[0]).unwrap();
+
+    // Convert unset for ease of use
     let mut unset: Vec<[String; 4]> = Vec::from(unset);
+
+    // Breadth first search the tree to calculate the value of the human node
     let hmn_val = get_hmn_val(humn_tree.root(), &mut unset, &mut set_monkeys, target);
     println!("Problem 2 {:?}", hmn_val);
 
 }
 fn main() {
-    let p1 = p1();
-
-    let file = fs::read_to_string("./src/test.txt").expect("Error");
-
-    let mut nodes: HashMap<String, [String;3]> = HashMap::new();
-    let mut set_monkeys: HashMap<String, i64> = HashMap::new();
-
-    let re_num = Regex::new(r"([\D]+): ([\D]+) ([+\-*/]) ([\D]+)").unwrap();
-    for line in fs::read_to_string("./src/input.txt").expect("Error").lines(){
-        if re_num.is_match(line){ 
-            for cap in re_num.captures_iter(line){
-                nodes.insert(cap[1].to_string(), [cap[2].to_string(), cap[4].to_string(), cap[3].to_string()]);
-            }
-        }
-        else {
-            let mut monkey = &line[0..4].to_string();
-            let val: i64 = line[6..line.len()].parse().unwrap();
-            set_monkeys.insert(monkey.clone(), val);
-            
-        }
-    }
-    p2(p1.1);
-    
+    p1();
+    p2();
 }
